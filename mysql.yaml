@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: ruoyi
+  labels:
+    app: mysql-service-labels
+spec:
+  type: ClusterIP
+  ports:
+    - name: mysql
+      port: 3306
+      protocol: TCP
+      targetPort: 3306
+  selector:
+    app: mysql-pod-labels
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: ruoyi
+  labels:
+    app: mysql-deployment-labels
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-pod-labels
+  template:
+    metadata:
+      labels:
+        app: mysql-pod-labels
+    spec:
+      tolerations:
+      - operator: Exists
+      nodeSelector:     ## 配置该容器调度到指定节点，前提是将指定节点打好标签  ##
+        ruoyi: "true"
+      #tolerations:
+      #- key: "env"
+      #  operator: "Equal"
+      #  value: "guance"
+      #  effect: "NoSchedule"
+      containers:
+      - name: mysql
+        image: nacos/nacos-mysql:5.7
+        args:
+          - "--ignore-db-dir=lost+found"
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: nacos-mysql-lib
+          mountPath: /var/lib/mysql
+        - name: sharedata
+          mountPath: /docker-entrypoint-initdb.d
+        - name: mysql-config-volumes
+          mountPath: /etc/mysql/mysql.conf.d
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "password"
+        - name: TZ
+          value: Asia/Shanghai
+        - name: LANG
+          value: en_US.utf8        
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - set -ex;mkdir -p /sharedata;cp -r /midsharedata/* /sharedata;
+        image: zhaogangxp/sharedata:3.6.2_v1.14.0
+        imagePullPolicy: Always
+        name: sharedata-sidecar
+        volumeMounts:
+        - mountPath: /sharedata
+          name: sharedata
+      restartPolicy: Always    
+      volumes:
+      - name: nacos-mysql-lib
+        emptyDir: {}
+      - name: mysql-config-volumes
+        configMap:
+          name: mysql-config
+          items:
+            - key: mysqld.cnf
+              path: mysqld.cnf
+      - name: sharedata
+        emptyDir: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+  namespace: ruoyi
+  labels:
+    app: mysql-configmap-labels
+data:
+  mysqld.cnf: |
+    [client]
+    port=3306
+    [mysql]
+    no-auto-rehash
+    [mysqld]
+    skip-host-cache
+    skip-name-resolve
+    default-authentication-plugin=mysql_native_password
+    character-set-server=utf8mb4
+    explicit_defaults_for_timestamp=true
+    lower_case_table_names=1
+    innodb-buffer-pool-size=80M
+    default-time-zone=+8:00
+    collation-server=utf8mb4_unicode_ci
+

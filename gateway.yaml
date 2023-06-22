@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:                              #labels <map[string]string>
+    app: gateway-deployment-labels
+  name: gateway-deployment                #name <string> Name must be unique within a namespace 
+  namespace: ruoyi
+spec:
+  replicas: 1
+  selector:                            #It must match the pod template's labels.
+    matchLabels: 
+      app: gateway-pod-labels
+  template:
+    metadata:
+      labels: 
+        app: gateway-pod-labels	        # <map[string]string>
+      name: gateway-pod
+      annotations:
+        datakit/logs: |
+          [
+            {
+              "disable": false,
+              "source": "ruoyi-bj-gateway",
+              "service": "gateway",
+              "multiline_match": "^\\d{4}-\\d{2}-\\d{2}"
+            }
+          ]
+    spec:
+      tolerations:
+      - operator: Exists
+      nodeSelector:     ## 配置该容器调度到指定节点，前提是将指定节点打好标签  ##
+        ruoyi: "true"
+      #tolerations:
+      #- key: "env"
+      #  operator: "Equal"
+      #  value: "guance"
+      #  effect: "NoSchedule" 
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      containers:
+      - command: ["sh", "-ec", "exec java $(JAVA_OPTS) -jar ruoyi-gateway.jar"]  
+        env:
+        - name: DD_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.hostIP
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: JAVA_OPTS
+          value: 
+            -javaagent:/sharedata/dd-java-agent-v1.14.0-guance.jar
+            -Ddd.env=demo
+            -Ddd.tags=pod_name:$(POD_NAME)
+            -Ddd.profiling.enabled=true
+            -Ddd.service=gateway
+            -Ddd.version=3.6.2
+            -Ddd.jmxfetch.enabled=true
+            -Ddd.jmxfetch.statsd.port=8125
+            -Ddd.jmxfetch.check-period
+            -Ddd.logs.injection=true
+            -Ddd.agent.port=9529
+            -Ddd.jdbc.sql.obfuscation=true
+            -Ddd.trace.db.client.split-by-instance=true
+            -Ddd.http.server.tag.query-string=true
+            -Ddd.instrumentation.telemetry.enabled=false
+            -Ddd.trace.health.metrics.enabled=false
+        image: zhaogangxp/ruoyi-gateway:3.6.2
+        #imagePullPolicy: Always
+        name: gateway-container
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /sharedata
+          name: sharedata
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - set -ex;mkdir -p /sharedata;cp -r /midsharedata/* /sharedata;
+        image: zhaogangxp/sharedata:3.6.2_v1.14.0
+        #imagePullPolicy: Always
+        name: ddtrace-agent-sidecar
+        volumeMounts:
+        - mountPath: /sharedata
+          name: sharedata
+      restartPolicy: Always
+      volumes:
+      - emptyDir: {}
+        name: sharedata
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gateway-service-labels
+  name: gateway
+  namespace: ruoyi
+spec:
+  ports:
+  - name: gateway-port
+    port: 8080
+    protocol: TCP
+    targetPort: 8080	
+  selector:
+    app: gateway-pod-labels
+  type: ClusterIP   

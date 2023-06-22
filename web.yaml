@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+#   annotations:
+  labels:                              #labels <map[string]string>
+    app: web-deployment-labels
+  name: web-deployment                #name <string> Name must be unique within a namespace 
+  namespace: ruoyi
+spec:
+  replicas: 1
+  selector:                            #It must match the pod template's labels.
+    matchLabels: 
+      app: web-pod-labels
+  template:
+    metadata:
+      labels: 
+        app: web-pod-labels	        # <map[string]string>
+      name: web-pod
+      annotations:
+        datakit/logs: |
+          [
+            {
+              "disable": false,
+              "source": "ruoyi-bj-web",
+              "service": "web",
+              "multiline_match": ""
+            }
+          ]
+    spec:
+      tolerations:
+      - operator: Exists
+      nodeSelector:     ## 配置该容器调度到指定节点，前提是将指定节点打好标签  ##
+        ruoyi: "true"
+      #tolerations:
+      #- key: "env"
+      #  operator: "Equal"
+      #  value: "guance"
+      #  effect: "NoSchedule"
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      containers:
+      - env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        image: zhaogangxp/ruoyi-web:3.6.2
+        #imagePullPolicy: Always
+        name: web-container
+        ports:
+        - containerPort: 80
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: web-service-labels
+  name: ruoyi-web
+  namespace: ruoyi
+spec:
+  type: NodePort
+  ports:
+  - name: web-port
+    port: 80
+    protocol: TCP
+    targetPort: 80	
+    nodePort: 30888
+  selector:
+    app: web-pod-labels                       #Deployment.spec.selector.matchLabels
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ruoyi-ingress
+  namespace: ruoyi
+spec:
+#  ingressClassName: nginx
+  rules:
+  - host: ruoyi.dataflux.cn
+    http:
+      paths:
+      - backend:
+          service:
+            name: ruoyi-web
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+
