@@ -5,7 +5,7 @@
 
 Demo可展示功能：
 
-1、K8s环境的微服务
+1、K8S环境的微服务
 
 2、Rum UserName埋点
 
