@@ -27,15 +27,6 @@ spec:
             }
           ]
     spec:
-      tolerations:
-      - operator: Exists
-      nodeSelector:     ## 配置该容器调度到指定节点，前提是将指定节点打好标签  ##
-        ruoyi: "true"
-      #tolerations:
-      #- key: "env"
-      #  operator: "Equal"
-      #  value: "guance"
-      #  effect: "NoSchedule"
       dnsConfig:
         options:
           - name: ndots
@@ -66,8 +57,7 @@ spec:
   - name: web-port
     port: 80
     protocol: TCP
-    targetPort: 80	
-    nodePort: 30888
+    targetPort: 80
   selector:
     app: web-pod-labels                       #Deployment.spec.selector.matchLabels
 ---
@@ -77,7 +67,6 @@ metadata:
   name: ruoyi-ingress
   namespace: ruoyi
 spec:
-#  ingressClassName: nginx
   rules:
   - host: ruoyi.dataflux.cn
     http:
@@ -89,4 +78,3 @@ spec:
               number: 80
         path: /
         pathType: ImplementationSpecific
-
