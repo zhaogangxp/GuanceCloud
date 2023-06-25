@@ -26,15 +26,6 @@ spec:
             }
           ]
     spec:
-      #tolerations:
-      #- key: "env"
-      #  operator: "Equal"
-      #  value: "guance"
-      #  effect: "NoSchedule"
-      tolerations:
-      - operator: Exists
-      nodeSelector:     ## 配置该容器调度到指定节点，前提是将指定节点打好标签  ##
-        ruoyi: "true" 
       dnsConfig:
         options:
           - name: ndots
