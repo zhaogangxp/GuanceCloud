@@ -31,15 +31,6 @@ spec:
       labels:
         app: redis-pod-labels
     spec:
-      tolerations:
-      - operator: Exists
-      nodeSelector:     ## 配置该容器调度到指定节点，前提是将指定节点打好标签  ##
-        ruoyi: "true"
-      #tolerations:
-      #- key: "env"
-      #  operator: "Equal"
-      #  value: "guance"
-      #  effect: "NoSchedule"
       dnsConfig:
         options:
           - name: ndots
