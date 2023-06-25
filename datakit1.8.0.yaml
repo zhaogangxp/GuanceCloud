@@ -98,7 +98,6 @@ spec:
     - protocol: TCP
       port: 9529
       targetPort: 9529
-      nodePort: 30029
 
 ---
 
@@ -116,14 +115,12 @@ subjects:
   namespace: datakit
 ---
 
-##datakit internet access
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: datakit-ingress
   namespace: datakit
 spec:
-  ingressClassName: nginx
   rules:
   - host: datakit.dataflux.cn
     http:
@@ -170,17 +167,17 @@ spec:
               apiVersion: v1
               fieldPath: spec.nodeName
         - name: ENV_DATAWAY
-          value: http://dataway.utils:9528?token=tkn_b12c8f8f5ecd4aba903104a5ff8c7fd7
+          value: https://openway.guance.com?token=<your-token> # 此处地址参考https://docs.guance.com/getting-started/getting-guance/获取
         - name: ENV_GLOBAL_HOST_TAGS
-          value: host=__datakit_hostname,host_ip=__datakit_ip,cluster_name_k8s=guance_ali
+          value: host=__datakit_hostname,host_ip=__datakit_ip,cluster_name_k8s=guance_demo
         - name: ENV_GLOBAL_ELECTION_TAGS
-          value: cluster_name_k8s=guance_ali
+          value: cluster_name_k8s=guance_demo
         - name: ENV_DEFAULT_ENABLED_INPUTS
           value: cpu,disk,diskio,mem,swap,system,hostobject,net,host_processes,container,ebpf,profile,statsd
         - name: ENV_ENABLE_ELECTION
           value: enable
         - name: ENV_NAMESPACE
-          value: guance_ali
+          value: guance_demo
         - name: ENV_LOG
           value: stdout
         - name: ENV_HTTP_LISTEN
@@ -242,10 +239,10 @@ spec:
         - mountPath: /usr/local/datakit/data/ipdb/iploc/
           name: datakit-ipdb
         # # ---iploc-end
-        #- mountPath: /usr/local/datakit/conf.d/db/mysql.conf
-        #  name: datakit-conf
-        #  subPath: mysql.conf
-        #  readOnly: true
+        - mountPath: /usr/local/datakit/conf.d/db/mysql.conf
+          name: datakit-conf
+          subPath: mysql.conf
+          readOnly: true
         - mountPath: /usr/local/datakit/conf.d/ddtrace/ddtrace.conf
           name: datakit-conf
           subPath: ddtrace.conf
@@ -265,7 +262,7 @@ spec:
           command:
             - bash
             - -c
-          image: easzlab.io.local:5000/datakit/iploc:1.0
+          image: pubrepo.jiagouyun.com/datakit/iploc:1.0
           imagePullPolicy: IfNotPresent
           name: init-volume
           resources: {}
@@ -279,7 +276,7 @@ spec:
         - sh
         - -c
         - set -ex;mkdir -p /sharedata;cp -r /midsharedata/* /sharedata;
-        image: easzlab.io.local:5000/sharedata:3.6.2_v1.14.0
+        image: zhaogangxp/sharedata:3.6.2_v1.14.0
         #imagePullPolicy: Always
         name: ddtrace-agent-sidecar
         volumeMounts:
@@ -339,11 +336,6 @@ data:
         user = "datakit"
         pass = "Datakit1234"
         port = 3306
-    #redis.conf: |-
-    redis.conf: |-
-      [[inputs.redis]]
-        host = "redis.ruoyi"
-        port = 6379
     #ddtrace.conf: |-
     ddtrace.conf: |-
       [[inputs.ddtrace]]
