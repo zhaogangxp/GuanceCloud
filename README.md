@@ -37,7 +37,9 @@
 
 1 部署Kubernetes及其Ingress控制器
 
-`复制sealos至Demo主机上，执行如下命令安装集群并部署ingress`
+`下载sealos至Demo主机上，执行如下命令安装集群并部署ingress`
+
+[Sealos4.3.0](https://github.com/labring/sealos/releases/tag/v4.3.0 "Sealos")
 
 ```
 tar zxvf sealos_4.3.0_linux.tar.gz sealos && chmod +x sealos && mv sealos /usr/bin
@@ -58,6 +60,8 @@ kubectl apply -f ingress.yaml
 <div align=left><img src="https://github.com/zhaogangxp/gc/assets/28213758/c66bc3a7-b9c3-4b76-8dfb-eb7de6880010" style="width: 30%;"></div>
 
 4 部署观测云采集器
+
+<font color=#ff0000>修改datakit.yaml中的token为你的观测云工作空间看到的token</font>
 
 `kubectl apply -f datakit.yaml`
 
