@@ -6,11 +6,12 @@ metadata:
   labels:
     app: nacos-service-labels
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
     - port: 8848
       name: client
       targetPort: 8848
+      nodePort: 30048
     - port: 9848
       name: client-rpc
       targetPort: 9848
@@ -52,15 +53,6 @@ spec:
       annotations:
         pod.alpha.kubernetes.io/initialized: "true"
     spec:
-      tolerations:
-      - operator: Exists
-      nodeSelector:     ## 配置该容器调度到指定节点，前提是将指定节点打好标签  ##
-        ruoyi: "true"
-      #tolerations:
-      #- key: "env"
-      #  operator: "Equal"
-      #  value: "guance"
-      #  effect: "NoSchedule"
       dnsConfig:
         options:
           - name: ndots
