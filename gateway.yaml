@@ -20,7 +20,7 @@ spec:
           [
             {
               "disable": false,
-              "source": "ruoyi-bj-gateway",
+              "source": "ruoyi",
               "service": "gateway",
               "multiline_match": "^\\d{4}-\\d{2}-\\d{2}"
             }
@@ -48,6 +48,12 @@ spec:
             -Ddd.env=demo
             -Ddd.tags=pod_name:$(POD_NAME)
             -Ddd.profiling.enabled=true
+            -XX:FlightRecorderOptions=stackdepth=256
+            -Ddd.profiling.ddprof.enabled=true
+            -Ddd.profiling.ddprof.cpu.enabled=true
+            -Ddd.profiling.ddprof.wall.enabled=true
+            -Ddd.profiling.ddprof.alloc.enabled=true
+            -Ddd.profiling.ddprof.liveheap.enabled=true
             -Ddd.service=gateway
             -Ddd.version=3.6.2
             -Ddd.jmxfetch.enabled=true
@@ -61,7 +67,6 @@ spec:
             -Ddd.instrumentation.telemetry.enabled=false
             -Ddd.trace.health.metrics.enabled=false
         image: zhaogangxp/ruoyi-gateway:3.6.2
-        #imagePullPolicy: Always
         name: gateway-container
         ports:
         - containerPort: 8080
@@ -74,7 +79,6 @@ spec:
         - -c
         - set -ex;mkdir -p /sharedata;cp -r /midsharedata/* /sharedata;
         image: zhaogangxp/sharedata:3.6.2_v1.14.0
-        #imagePullPolicy: Always
         name: ddtrace-agent-sidecar
         volumeMounts:
         - mountPath: /sharedata
@@ -99,4 +103,4 @@ spec:
     targetPort: 8080	
   selector:
     app: gateway-pod-labels
-  type: ClusterIP   
+  type: ClusterIP 
