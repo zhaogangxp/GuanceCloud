@@ -9,7 +9,7 @@
 
 部署架构图
 
-
+<div align=left><img src="https://github.com/zhaogangxp/GuanceCloud/assets/28213758/7de0c14d-d357-4d2f-a42c-131f4e0a4923" style="width: 30%;"></div>
 
 资源准备
 
