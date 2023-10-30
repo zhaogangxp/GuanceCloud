@@ -52,7 +52,7 @@ spec:
         - name: TZ
           value: Asia/Shanghai
         - name: LANG
-          value: en_US.utf8        
+          value: en_US.utf8      
       initContainers:
       - command:
         - sh
@@ -100,4 +100,3 @@ data:
     innodb-buffer-pool-size=80M
     default-time-zone=+8:00
     collation-server=utf8mb4_unicode_ci
-
