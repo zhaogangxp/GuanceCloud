@@ -41,6 +41,7 @@
 [Sealos4.3.6](https://github.com/labring/sealos/releases/tag/v4.3.6 "Sealos")
 
 ```
+modprobe br_netfilter
 tar zxvf sealos_4.3.6_linux_amd64.tar.gz sealos && chmod +x sealos && mv sealos /usr/bin
 sealos run labring/kubernetes:v1.24.0 labring/helm:v3.8.2 labring/calico:v3.22.1 labring/metrics-server:v0.6.1 --single
 kubectl apply -f ingress.yaml
