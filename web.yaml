@@ -1,7 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-#   annotations:
   labels:                              #labels <map[string]string>
     app: web-deployment-labels
   name: web-deployment                #name <string> Name must be unique within a namespace 
@@ -21,7 +20,7 @@ spec:
           [
             {
               "disable": false,
-              "source": "ruoyi-bj-web",
+              "source": "ruoyi",
               "service": "web",
               "multiline_match": ""
             }
@@ -38,7 +37,6 @@ spec:
             fieldRef:
               fieldPath: metadata.name
         image: zhaogangxp/ruoyi-web:3.6.2
-        #imagePullPolicy: Always
         name: web-container
         ports:
         - containerPort: 80
@@ -57,7 +55,8 @@ spec:
   - name: web-port
     port: 80
     protocol: TCP
-    targetPort: 80
+    targetPort: 80	
+    nodePort: 30888
   selector:
     app: web-pod-labels                       #Deployment.spec.selector.matchLabels
 ---
@@ -67,6 +66,7 @@ metadata:
   name: ruoyi-ingress
   namespace: ruoyi
 spec:
+  ingressClassName: nginx
   rules:
   - host: ruoyi.dataflux.cn
     http:
