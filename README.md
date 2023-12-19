@@ -72,7 +72,9 @@ kubectl create namespace ruoyi
 kubectl apply -f redis.yaml
 kubectl apply -f mysql.yaml
 ```
-`kubectl -f nacos.yaml`
+```
+kubectl apply -f nacos.yaml
+```
 ```
 kubectl apply -f auth.yaml
 kubectl apply -f gateway.yaml
