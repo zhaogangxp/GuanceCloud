@@ -165,8 +165,7 @@ spec:
               apiVersion: v1
               fieldPath: spec.nodeName
         - name: ENV_DATAWAY
-#          value: https://openway.guance.com?token=<your-token> # 此处填上 dataway 真实地址
-          value: https://openway.guance.com?token=tkn_9db9649a6bb1426f83dbec310ab0421c
+          value: https://openway.guance.com?token=<your-token> # 此处填上 dataway 真实地址
         - name: ENV_GLOBAL_HOST_TAGS
           value: host=__datakit_hostname,host_ip=__datakit_ip,cluster_name_k8s=demo_cluster,project=demo_project
         - name: ENV_GLOBAL_ELECTION_TAGS
