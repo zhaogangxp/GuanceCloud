@@ -94,3 +94,23 @@ kubectl apply -f gateway.yaml
 kubectl apply -f system.yaml
 kubectl apply -f web.yaml
 ```
+```
+验证auth gateway system启动完成
+kubectl logs -n ruoyi auth/gateway/system-pod-name
+
+ .-------.       ____     __        
+ |  _ _   \      \   \   /  /    
+ | ( ' )  |       \  _. /  '       
+ |(_ o _) /        _( )_ .'         
+ | (_,_).' __  ___(_ o _)'          
+ |  |\ \  |  ||   |(_,_)'         
+ |  | \ `'   /|   `-'  /           
+ |  |  \    /  \      /           
+ ''-'   `'-'    `-..-'  
+```
+
+6 访问Demo应用
+
+浏览器打开域名 http://ruoyi.dataflux.cn
+
+![image](https://github.com/zhaogangxp/GuanceCloud/assets/28213758/e006b884-e218-46d8-9430-bbee3c139cab)
