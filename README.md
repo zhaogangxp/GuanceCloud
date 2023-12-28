@@ -73,8 +73,21 @@ kubectl apply -f redis.yaml
 kubectl apply -f mysql.yaml
 ```
 ```
+验证mysql启动完成
+kubectl logs -n ruoyi mysql-pod-name
+
+Version: '5.7.39'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  MySQL Community Server (GPL)
+```
+```
 kubectl apply -f nacos.yaml
 ```
+```
+验证nacos启动完成
+kubectl logs -n ruoyi nacos-pod-name
+
+2023-12-28 22:56:35,922 INFO Nacos started successfully in stand alone mode. use external storage
+```
+
 ```
 kubectl apply -f auth.yaml
 kubectl apply -f gateway.yaml
