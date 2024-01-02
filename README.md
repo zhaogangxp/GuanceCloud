@@ -53,11 +53,68 @@ kubectl apply -f ingress.yaml
 192.168.167.160 ruoyi.dataflux.cn
 192.168.167.160 datakit.dataflux.cn
 ```
-3 创建 应用ID 在观测云控制台-用户访问监测-新建应用
+3 创建 应用ID和配置Pipeline
+
+3.1 在观测云控制台-用户访问监测-新建应用
 
 `appid_1ae7755342fb47f0a7bcd62830d557c8`
 
 <div align=left><img src="https://github.com/zhaogangxp/gc/assets/28213758/c66bc3a7-b9c3-4b76-8dfb-eb7de6880010" style="width: 30%;"></div>
+
+3.2 在观测云控制台-日志-Pipelines-新建Pipeline
+
+如下图填写过滤和Pipeline名称，手动写入即可。
+
+![image](https://github.com/zhaogangxp/GuanceCloud/assets/28213758/1cd0b08e-c0aa-43ea-b355-2848f1be1baa)
+
+写入如下内容（直接copy即可）
+
+```
+#ruoyi PL#
+add_pattern("GREEDYLINES", "(?s).*")
+add_pattern("_ruoyi", "%{TIMESTAMP_ISO8601:time} \\[%{NOTSPACE:thread}\\] %{NOTSPACE:status}")
+#info
+grok(_,"%{_ruoyi}  %{NOTSPACE:client} - \\[%{NOTSPACE:method},%{NOTSPACE:line}\\] - \\[%{DATA:trace_id} %{DATA:span_id}\\] - %{GREEDYDATA:msg}")
+#error
+grok(_,"%{_ruoyi} %{NOTSPACE:client} - \\[%{NOTSPACE:method},%{NOTSPACE:line}\\] - \\[%{DATA:trace_id} %{DATA:span_id}\\] - %{GREEDYDATA:msg}")
+#error stack
+grok(_,"%{_ruoyi} %{NOTSPACE:client} - \\[%{NOTSPACE:method},%{NOTSPACE:line}\\] - \\[%{DATA:trace_id} %{DATA:span_id}\\] - %{GREEDYDATA:msg}(\\n)(%{GREEDYLINES:stack_trace})")
+default_time(time,"UTC")
+########################
+#web PL#
+add_pattern("date2", "%{YEAR}[./]%{MONTHNUM}[./]%{MONTHDAY} %{TIME}")
+
+# access log
+grok(_, "%{NOTSPACE:client_ip} %{NOTSPACE:http_ident} %{NOTSPACE:http_auth} \\[%{HTTPDATE:time}\\] \"%{DATA:http_method} %{GREEDYDATA:http_url} HTTP/%{NUMBER:http_version}\" %{INT:status_code} %{INT:bytes}")
+
+# access log
+add_pattern("access_common", "%{NOTSPACE:client_ip} %{NOTSPACE:http_ident} %{NOTSPACE:http_auth} \\[%{HTTPDATE:time}\\] \"%{DATA:http_method} %{GREEDYDATA:http_url} HTTP/%{NUMBER:http_version}\" %{INT:status_code} %{INT:bytes}")
+grok(_, '%{access_common} "%{NOTSPACE:referrer}" "%{GREEDYDATA:agent}"')
+user_agent(agent)
+
+# error log
+grok(_, "%{date2:time} \\[%{LOGLEVEL:status}\\] %{GREEDYDATA:msg}, client: %{NOTSPACE:client_ip}, server: %{NOTSPACE:server}, request: \"%{DATA:http_method} %{GREEDYDATA:http_url} HTTP/%{NUMBER:http_version}\", (upstream: \"%{GREEDYDATA:upstream}\", )?host: \"%{NOTSPACE:ip_or_host}\"")
+grok(_, "%{date2:time} \\[%{LOGLEVEL:status}\\] %{GREEDYDATA:msg}, client: %{NOTSPACE:client_ip}, server: %{NOTSPACE:server}, request: \"%{GREEDYDATA:http_method} %{GREEDYDATA:http_url} HTTP/%{NUMBER:http_version}\", host: \"%{NOTSPACE:ip_or_host}\"")
+grok(_,"%{date2:time} \\[%{LOGLEVEL:status}\\] %{GREEDYDATA:msg}")
+
+group_in(status, ["warn", "notice"], "warning")
+group_in(status, ["error", "crit", "alert", "emerg"], "error")
+
+cast(status_code, "int")
+cast(bytes, "int")
+
+group_between(status_code, [200,299], "OK", status)
+group_between(status_code, [300,399], "notice", status)
+group_between(status_code, [400,499], "warning", status)
+group_between(status_code, [500,599], "error", status)
+
+
+nullif(http_ident, "-")
+nullif(http_auth, "-")
+nullif(upstream, "")
+default_time(time)
+
+```
 
 4 部署观测云采集器
 
